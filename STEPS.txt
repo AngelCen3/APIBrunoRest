@@ -1,12 +1,17 @@
 npm install --save-dev vite  //npm run dev
+ //solo voy agregar este comentario por que empezamos a trabajar con BRUNO REST
+git init
+gh repo create CursoAvanzadoLaravel --public --source=.
+git add .
+git commit -m "Este es un curso avanzado de laravel"
 
 laravel new api
 cd api
-API Privada --> 
+API Privada -->
 copcento importante es el versionado
--que es un recurso --> la informacion que se extrae  
+-que es un recurso --> la informacion que se extrae
 Que es una coleccion de datos --->(muchos datos de lo mismo) Conjunto de registros, conjunto de recursos
-API --> 
+API -->
 php artisan make:model Post -cmf /controller migration factory
 
 database\migrations\2023_09_01_053619_create_posts_table.php
@@ -93,17 +98,17 @@ resources\views\index.blade.php
             </head>
             <body class="bg-gray-100 text-gray-700">
                 <div class="container mx-auto px-4">
-                    <div class="grid grid-cols-3 my-10"> 
+                    <div class="grid grid-cols-3 my-10">
                         @foreach ($posts as $post)
                         <div class="bg-white hover:bg-blue-100 border border-gray-200 p-5">
                             <h2 class="font-bold text-lg mb-4">{{ $post->title }}</h2>
                             <p class="text-xs">{{ $post->excerpt }}</p>
                             <p class="text-xs">{{ $post->published_at }}</p>
-                        </div>          
+                        </div>
                         @endforeach
                     </div>
                     {{ $posts->links() }}
-                </div>             
+                </div>
             </body>
         </html>
 
@@ -112,7 +117,7 @@ app\Models\Post.php
                 {
                     use HasFactory;
 
-                    public function getExcerptAttribute(){          //<p class="text-xs">{{ $post->excerpt }}</p>                            
+                    public function getExcerptAttribute(){          //<p class="text-xs">{{ $post->excerpt }}</p>
                         return substr($this->content, 0, 120);
                     }
 
@@ -172,18 +177,18 @@ php artisan make:controller Api/V1/PostController --api --model=Post
  <!------------------//php artisan route:list
          To see item listed that we´re using
 
-  GET|HEAD        api/v1/posts ............... posts.index › Api\V1\PostController@index  
-  POST            api/v1/posts ............... posts.store › Api\V1\PostController@store  
-  GET|HEAD        api/v1/posts/{post} ........ posts.show › Api\V1\PostController@show  
-  PUT|PATCH       api/v1/posts/{post} ........ posts.update › Api\V1\PostController@update  
-  DELETE          api/v1/posts/{post} ........ posts.destroy › Api\V1\PostController@destroy 
+  GET|HEAD        api/v1/posts ............... posts.index › Api\V1\PostController@index
+  POST            api/v1/posts ............... posts.store › Api\V1\PostController@store
+  GET|HEAD        api/v1/posts/{post} ........ posts.show › Api\V1\PostController@show
+  PUT|PATCH       api/v1/posts/{post} ........ posts.update › Api\V1\PostController@update
+  DELETE          api/v1/posts/{post} ........ posts.destroy › Api\V1\PostController@destroy
 
 <!-------------Install POSTMAN
 And put -----> http://127.0.0.1:8000/api/v1/posts/1
 
 <!-----video 8 ------------>
 
-php artisan make:resource V1/PostResource //always we´ll should in this way becose in the 
+php artisan make:resource V1/PostResource //always we´ll should in this way becose in the
 future we can add more versions
 
 Http\Resources\V1\PostResource.php  //a resource is created to improve the presentation of information
@@ -206,7 +211,7 @@ Http\Resources\V1\PostResource.php  //a resource is created to improve the prese
             {
                 return new PostResource($post);
             }
-        
+
             public function destroy(Post $post)
             {
                 $post->delete();
@@ -215,12 +220,12 @@ Http\Resources\V1\PostResource.php  //a resource is created to improve the prese
                 ], 204);
             }
 
-<!--- We must take into account that this is an API, 
-    so any application that accesses information 
+<!--- We must take into account that this is an API,
+    so any application that accesses information
     through this link will be able to access the information
 
-http://127.0.0.1:8000/api/v1/posts/1   //we have enabled 
-this link so that any application, no matter who 
+http://127.0.0.1:8000/api/v1/posts/1   //we have enabled
+this link so that any application, no matter who
 designed it, can access this information
 
 >>>>>>>>>Steps api.php(Wath to show)>PostResource.php(format)>PostController.php
@@ -233,7 +238,7 @@ designed it, can access this information
 <!----php artisan make:resource V2/PostCollection
 
 //here we add you would to have version 1 and version 2 and not get confused
-----use App\Http\Controllers\Api\V1\PostController as PostV1;  
+----use App\Http\Controllers\Api\V1\PostController as PostV1;
     use App\Http\Controllers\Api\V2\PostController as PostV2;
 
 //We add version V2 and set up
@@ -252,7 +257,7 @@ Route::apiResource('v2/posts', PostV2::class)
 
 <!---php artisan migrate //Although when using it the tables had already been added
 
------routes\api.php  
+-----routes\api.php
 
 //will add this lines ---->middleware('auth:sanctum');
 
