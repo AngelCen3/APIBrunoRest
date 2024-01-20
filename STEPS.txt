@@ -1,0 +1,260 @@
+npm install --save-dev vite  //npm run dev
+
+laravel new api
+cd api
+API Privada --> 
+copcento importante es el versionado
+-que es un recurso --> la informacion que se extrae  
+Que es una coleccion de datos --->(muchos datos de lo mismo) Conjunto de registros, conjunto de recursos
+API --> 
+php artisan make:model Post -cmf /controller migration factory
+
+database\migrations\2023_09_01_053619_create_posts_table.php
+
+        public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('user_id');
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->text('content');
+
+            $table->timestamps();
+
+            $table->foreign('user_id')  //and from this table I´d like this field
+                ->references('id')      //field from the foreign table
+                ->on('users');          //table that I´d like to work
+        });
+    }
+
+database\factories\PostFactory.php
+        public function definition(): array
+    {
+        return [
+            'user_id' => rand(1,10),
+            'title' => $this->faker->sentence,
+            'slug' => $this->faker->slug,
+            'content'=> $this->faker->text(1600),
+        ];
+    }
+
+database\seeders\DatabaseSeeder.php
+        public function run(): void
+    {
+         \App\Models\User::factory(10)->create();
+         \App\Models\Post::factory(120)->create();
+    }
+}
+
+systemctl status mysql
+sudo systemctl start mysql
+
+
+
+
+ php artisan tinker //to verify the connection we can use
+                    DB::connection()->getPdo();
+                    exit
+\api\.env   //setting db
+        DB_CONNECTION=mysql
+        DB_HOST=127.0.0.1
+        DB_PORT=3306
+        DB_DATABASE=api
+        DB_USERNAME=root
+        DB_PASSWORD=
+
+routes\web.php
+    <?php
+    use Illuminate\Support\Facades\Route;
+
+    Route::get('/', [\App\Http\Controllers\PostController::class, 'index']);
+
+app\Http\Controllers\PostController.php
+        use App\Models\Post;
+            public function index()
+                {
+                    return view('index',[
+                        'posts' => Post::latest()->paginate()
+                    ]);
+                }
+resources\views\welcome.blade.php -->We´ll change the name to index.blade.php
+
+resources\views\index.blade.php
+        <!DOCTYPE html>
+        <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+
+                <title>Laravel</title>
+                @vite('resources/css/app.css')
+            </head>
+            <body class="bg-gray-100 text-gray-700">
+                <div class="container mx-auto px-4">
+                    <div class="grid grid-cols-3 my-10"> 
+                        @foreach ($posts as $post)
+                        <div class="bg-white hover:bg-blue-100 border border-gray-200 p-5">
+                            <h2 class="font-bold text-lg mb-4">{{ $post->title }}</h2>
+                            <p class="text-xs">{{ $post->excerpt }}</p>
+                            <p class="text-xs">{{ $post->published_at }}</p>
+                        </div>          
+                        @endforeach
+                    </div>
+                    {{ $posts->links() }}
+                </div>             
+            </body>
+        </html>
+
+app\Models\Post.php
+        class Post extends Model
+                {
+                    use HasFactory;
+
+                    public function getExcerptAttribute(){          //<p class="text-xs">{{ $post->excerpt }}</p>                            
+                        return substr($this->content, 0, 120);
+                    }
+
+                    public function getPublishedAtAttribute(){      //<p class="text-xs">{{ $post->published_at }}</p>
+                        return $this->created_at->format('d/m/Y');
+                    }
+                }
+<!-----METODOS----->
+get- observar, optener datos
+Post - alterar
+put(completamente)/patch(parcial) - actualizar
+delete - eliminar
+
+<!----------ESTADOS ----------------------->
+2xx- success     4xx- Bad request
+200 ok              401 unauthorized
+201 created         403 forbidden
+204 no content      404 Not found
+
+3xx - Redirection       5xx- Server errors
+301 moved permanently   500 internal server error
+
+
+<!----------ENDPOINT------------->
+
+Vinculo  ----(Enlace)
+http://laravel-api.test/api/v2/posts
+http://laravel-api.test/api/v2/posts/1
+
+<<<<<<<<<Version 1
+-configuracion            ->retorna -> recurso
+-recurso                  ->retorna -> coleccion
+-coleccion
+
+--------------To create the Metods
+//we´ll do a controller to get 1 result or a collection( --api --model=Post // to create get, Post, put, patch, delete
+php artisan make:controller Api/V1/PostController --api --model=Post
+
+<!-------------app\Http\Controllers\Api\V1\PostController.php
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Post $post)
+    {
+        return $post;
+    }
+
+<!--------------routes\api.php   //we will work with the show only option for now
+        <?php
+
+        use Illuminate\Support\Facades\Route;
+
+        Route::apiResource('v1/posts', App\Http\Controllers\Api\V1\PostController::class)
+        ->only('show');
+
+ <!------------------//php artisan route:list
+         To see item listed that we´re using
+
+  GET|HEAD        api/v1/posts ............... posts.index › Api\V1\PostController@index  
+  POST            api/v1/posts ............... posts.store › Api\V1\PostController@store  
+  GET|HEAD        api/v1/posts/{post} ........ posts.show › Api\V1\PostController@show  
+  PUT|PATCH       api/v1/posts/{post} ........ posts.update › Api\V1\PostController@update  
+  DELETE          api/v1/posts/{post} ........ posts.destroy › Api\V1\PostController@destroy 
+
+<!-------------Install POSTMAN
+And put -----> http://127.0.0.1:8000/api/v1/posts/1
+
+<!-----video 8 ------------>
+
+php artisan make:resource V1/PostResource //always we´ll should in this way becose in the 
+future we can add more versions
+
+Http\Resources\V1\PostResource.php  //a resource is created to improve the presentation of information
+
+         return [
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'excerpt' => $this->excerpt,
+            'content' => $this->content,
+        ];
+
+<!----Http\Controllers\Api\V1\PostController.php
+    //We add this line --> use App\Http\Resources\V1\PostResource;
+        public function index()
+            {
+                return PostResource::collection(Post::latest()->paginate());
+            }
+
+            public function show(Post $post)
+            {
+                return new PostResource($post);
+            }
+        
+            public function destroy(Post $post)
+            {
+                $post->delete();
+                return response()->json([
+                    'message' => 'Success'
+                ], 204);
+            }
+
+<!--- We must take into account that this is an API, 
+    so any application that accesses information 
+    through this link will be able to access the information
+
+http://127.0.0.1:8000/api/v1/posts/1   //we have enabled 
+this link so that any application, no matter who 
+designed it, can access this information
+
+>>>>>>>>>Steps api.php(Wath to show)>PostResource.php(format)>PostController.php
+
+
+<!----php artisan make:controller Api/V2/PostController --api --model=Post
+
+<!----php artisan make:resource V2/PostResource
+
+<!----php artisan make:resource V2/PostCollection
+
+//here we add you would to have version 1 and version 2 and not get confused
+----use App\Http\Controllers\Api\V1\PostController as PostV1;  
+    use App\Http\Controllers\Api\V2\PostController as PostV2;
+
+//We add version V2 and set up
+Route::apiResource('v2/posts', PostV2::class)
+->only(['index', 'show']);
+
+-------> app\Http\Controllers\Api\V2\PostController.php
+        public function index()
+        {
+            return new PostCollection(Post::latest()->paginate());
+        }
+
+
+
+<!---------composer require laravel/sanctum   //middleware auth
+
+<!---php artisan migrate //Although when using it the tables had already been added
+
+-----routes\api.php  
+
+//will add this lines ---->middleware('auth:sanctum');
+
+
+i should con
